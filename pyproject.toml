@@ -153,8 +153,6 @@ python = "^3.7.1"
 # ----------------------
 # we use the TYPE_CHECKER.redefine method added in jsonschema 3.0.0
 jsonschema = ">=3.0.0"
-# frozendict 2.1.2 is broken on Debian 10: https://github.com/Marco-Sulla/python-frozendict/issues/41
-frozendict = ">=1,!=2.1.2"
 # We require 2.1.0 or higher for type hints. Previous guard was >= 1.1.0
 unpaddedbase64 = ">=2.1.0"
 # We require 1.5.0 to work around an issue when running against the C implementation of
