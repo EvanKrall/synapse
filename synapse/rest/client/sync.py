@@ -16,7 +16,7 @@ import logging
 from collections import defaultdict
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 
-from synapse.api.constants import EduTypes, Membership, PresenceState
+from synapse.api.constants import AccountDataTypes, EduTypes, Membership, PresenceState
 from synapse.api.errors import Codes, StoreError, SynapseError
 from synapse.api.filtering import FilterCollection
 from synapse.api.presence import UserPresenceState
@@ -139,7 +139,28 @@ class SyncRestServlet(RestServlet):
             device_id,
         )
 
-        request_key = (user, timeout, since, filter_id, full_state, device_id)
+        # ID of the last ignored users account data event for this user,
+        # if we're initial syncing.
+        # We include this in the request key to invalidate an initial sync
+        # in the response cache once the set of ignored users has changed.
+        # (We filter out ignored users from timeline events, so our sync response
+        # is invalid once the set of ignored users changes.)
+        last_ignored_users_id: Optional[int] = None
+        if not since:
+            # No since: this is an initial sync
+            last_ignored_users_id = await self.store.get_latest_stream_id_for_global_account_data_by_type_for_user(
+                user.to_string(), AccountDataTypes.IGNORED_USER_LIST
+            )
+
+        request_key = (
+            user,
+            timeout,
+            since,
+            filter_id,
+            full_state,
+            device_id,
+            last_ignored_users_id,
+        )
 
         if filter_id is None:
             filter_collection = self.filtering.DEFAULT_FILTER_COLLECTION
